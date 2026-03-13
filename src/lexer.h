@@ -1,19 +1,23 @@
 #pragma once
-#include <string>
-#include <vector>
+//#ifndef stdcpp_h
+#include <bits/stdc++.h>
+
+
+using namespace std;
 
 enum class TokenType {
-    End,
     Number,
     Identifier,
-    Plus,
-    Minus,
-    Mul,
-    Div,
-    Assign,
+    Slitral,
+    Operator,
     LParen,
     RParen,
+    LCurly,
+    RCurly,
+    LSqrly,
+    RSqrly,
     Semicolon,
+    End,
 };
 
 struct Token {
@@ -23,9 +27,8 @@ struct Token {
 
 class Lexer {
 public:
-    explicit Lexer(const std::string &input);
-    Token nextToken();
-    Token peekToken(); // look ahead without consuming
+    Lexer(const string &input);
+    void Tokenize(vector<Token> &tokens);
 
 private:
     const std::string input_;

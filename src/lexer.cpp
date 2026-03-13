@@ -1,61 +1,85 @@
 #include "lexer.h"
 #include <cctype>
 
-Lexer::Lexer(const std::string &input) : input_(input) {}
+Lexer::Lexer(const string &input) : input_(input) {}
 
-char Lexer::peek() const {
+char Lexer::peek() const
+{
     if (pos_ >= input_.size())
         return '\0';
     return input_[pos_];
 }
 
-char Lexer::get() {
+char Lexer::get()
+{
     if (pos_ >= input_.size())
         return '\0';
     return input_[pos_++];
 }
 
-void Lexer::skipWhitespace() {
-    while (std::isspace(peek()))
+void Lexer::skipWhitespace()
+{
+    while (peek() == ' ' || peek() == '\n')
         get();
 }
 
-Token Lexer::nextToken() {
-    skipWhitespace();
-    char c = peek();
-    if (c == '\0') {
-        return {TokenType::End, ""};
+void Lexer::Tokenize(vector<Token> &tokens)
+{
+    while (true)
+    {
+        skipWhitespace();
+        char c = peek();
+        if(c == '\0')
+            break;
+        if (std::isalpha(c))
+        {
+            std::string id;
+            while (std::isalnum(peek()))
+                id.push_back(get());
+            tokens.push_back({TokenType::Identifier, id});
+        }
+        else if (std::isdigit(c))
+        {
+            std::string num;
+            while (std::isdigit(peek()))
+                num.push_back(get());
+            tokens.push_back({TokenType::Number, num});
+        }
+        else if(c == '"')
+        {
+            get(); // consume the opening quote
+            std::string str;
+            while (peek() != '"')
+                str.push_back(get());
+            get(); // consume the closing quote
+            tokens.push_back({TokenType::Slitral, str});
+        }
+        else
+        {
+        c = get();
+        switch (c)
+        {
+        case '(':
+            tokens.push_back({TokenType::LParen, "("}); break;
+        case ')':
+            tokens.push_back({TokenType::RParen, ")"}); break;
+        case '{':
+            tokens.push_back({TokenType::LCurly, "{"}); break;
+        case '}':
+            tokens.push_back({TokenType::RCurly, "}"}); break;
+        case '[':
+            tokens.push_back({TokenType::LSqrly, "["}); break;
+        case ']':
+            tokens.push_back({TokenType::RSqrly, "]"}); break;
+        case ';':
+            tokens.push_back({TokenType::Semicolon, ";"}); break;
+        case '\0':
+            // skip unknown, return End to avoid infinite loop
+            tokens.push_back({TokenType::End, ""}); break;
+        default:
+            tokens.push_back({TokenType::Operator, string(1, c)}); break;
+        }
+        //get(); // consume the operator or unknown character
+        }
     }
-    if (std::isalpha(c)) {
-        std::string id;
-        while (std::isalnum(peek()))
-            id.push_back(get());
-        return {TokenType::Identifier, id};
-    }
-    if (std::isdigit(c)) {
-        std::string num;
-        while (std::isdigit(peek()))
-            num.push_back(get());
-        return {TokenType::Number, num};
-    }
-    switch (get()) {
-    case '+': return {TokenType::Plus, "+"};
-    case '-': return {TokenType::Minus, "-"};
-    case '*': return {TokenType::Mul, "*"};
-    case '/': return {TokenType::Div, "/"};
-    case '=': return {TokenType::Assign, "="};
-    case '(': return {TokenType::LParen, "("};
-    case ')': return {TokenType::RParen, ")"};
-    case ';': return {TokenType::Semicolon, ";"};
-    default:
-        // skip unknown, return End to avoid infinite loop
-        return {TokenType::End, ""};
-    }
-}
-
-Token Lexer::peekToken() {
-    size_t saved = pos_;
-    Token t = nextToken();
-    pos_ = saved;
-    return t;
 }
